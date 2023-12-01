@@ -2,8 +2,10 @@ import datetime
 import requests
 from environs import Env
 
+from tgbot.models.SimpleWeather import SimpleWeather
 
-def get_weather(coord):
+
+def get_weather(coord) -> SimpleWeather:
 	env = Env()
 	env.read_env(".env")
 	open_weather_token = env.str("OPEN_WEATHER_TOKEN")
@@ -31,7 +33,7 @@ def get_weather(coord):
 			wd = "Посмотри в окно, не пойму что там за погода!"
 
 		city = data["name"]
-		cur_weather = data["main"]["temp"]
+		cur_weather = data["main"]["temp"] - 274.15
 		humidity = data["main"]["humidity"]
 		pressure = data["main"]["pressure"]
 		wind = data["wind"]["speed"]
@@ -64,27 +66,7 @@ def get_weather(coord):
 		}
 
 		# Вывод погодных условий
-		return (f"***{datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}***\n"
-
-		        f"Погода в городе: {city}\n\n"
-
-		        f"{wd}\n\n"
-
-		        f"🌡Температура: {cur_weather}F°\n"
-		        f"💧Влажность: {humidity}%\n"
-		        f"🌀Давление: {pressure} мм.рт.ст\n"
-		        f"💨Ветер: {wind} м/с\n\n"
-
-		        f"☀️ УФ-индекс: {uvi}\n"
-		        f"🌇Восход солнца: {sunrise_timestamp}\n"
-		        f"🌄Закат солнца: {sunset_timestamp}\n"
-		        f"🏞Продолжительность дня: {length_of_the_day}\n\n"
-
-		        f"🌫Качетсво воздуха: {list[air_pollution]}\n"
-		        f"🏃Пробежка: Плохо\n\n"
-
-		        f"Хорошего дня!"
-		        )
+		return SimpleWeather(weather_description=wd, cur_weather=cur_weather, humidity=humidity, pressure=pressure, wind=wind, uvi=uvi)
 
 	except Exception as ex:
 		print(ex)

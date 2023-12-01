@@ -10,7 +10,8 @@ from tgbot.config import load_config
 from tgbot.filters.admin import AdminFilter
 from tgbot.handlers.admin import register_admin
 from tgbot.handlers.echo import register_echo
-from tgbot.handlers.user import user
+from tgbot.handlers.user_reg import register_user_reg
+from tgbot.handlers.user_weather import register_user_weather
 from tgbot.middlewares.environment import EnvironmentMiddleware
 
 from tgbot.database import sqlite_db
@@ -29,7 +30,8 @@ def register_all_filters(dp):
 def register_all_handlers(dp):
     register_admin(dp)
 
-    user(dp)
+    register_user_weather(dp)
+    register_user_reg(dp)
 
     register_echo(dp)
 

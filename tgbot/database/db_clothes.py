@@ -42,3 +42,41 @@ def get_body_sql():
 
 	return clothes
 
+def get_legs_sql():
+	base = sq.connect('local.db')
+	cur = base.cursor()
+
+	sql = """ SELECT * FROM clothes WHERE type = ?"""
+	clothes = cur.execute(sql, ('ноги',)).fetchall()
+	print(clothes)
+
+	base.commit()
+	base.close()
+
+	return clothes
+
+def get_shoes_sql():
+	base = sq.connect('local.db')
+	cur = base.cursor()
+
+	sql = """ SELECT * FROM clothes WHERE type = ?"""
+	clothes = cur.execute(sql, ('ступни',)).fetchall()
+	print(clothes)
+
+	base.commit()
+	base.close()
+
+	return clothes
+
+def get_accessories_sql():
+	base = sq.connect('local.db')
+	cur = base.cursor()
+
+	sql = """ SELECT * FROM clothes WHERE type IN (?, ?, ?)"""
+	clothes = cur.execute(sql, ('горло','руки','ступни_нижнее')).fetchall()
+	print(clothes)
+
+	base.commit()
+	base.close()
+
+	return clothes

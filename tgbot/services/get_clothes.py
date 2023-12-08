@@ -11,10 +11,13 @@ def get_clothes(simple_weather: SimpleWeather):
 
 
 	head = get_head(simple_weather)
-
 	body = get_body(simple_weather)
+	legs = get_legs(simple_weather)
+	shoes = get_shoes(simple_weather)
+	accessories = get_accessories(simple_weather)
+
 	print(body)
-	set_clothes = SetClothes(head=head, body=body, legs=head, shoes=head, accessories=head)
+	set_clothes = SetClothes(head=head, body=body, legs=legs, shoes=shoes, accessories=accessories)
 
 	return set_clothes
 
@@ -100,3 +103,66 @@ def get_body(simple_weather: SimpleWeather):
 	el_body = ElBody(outerwear=outer_body, underwear=under_body)
 
 	return el_body
+
+
+def get_legs(simple_weather: SimpleWeather):
+	legs = db_clothes.get_legs_sql()
+
+	# ноги:
+	if float(simple_weather.cur_weather) < 0:
+		legs = [x for x in legs if int(x[4]) >= 3]
+		legs_favorite = random.choice(legs)
+
+	el_legs = ElClothes(name=legs_favorite[1], img=legs_favorite[-1])
+
+	return el_legs
+
+
+def get_shoes(simple_weather: SimpleWeather):
+	shoes = db_clothes.get_shoes_sql()
+
+	# ботинки:
+	if float(simple_weather.cur_weather) >= 20:
+		shoes = [x for x in shoes if int(x[4]) = 1]
+		shoes_favorite = random.choice(shoes)
+
+	if 0 <= float(simple_weather.cur_weather) < 20:
+		shoes = [x for x in shoes if int(x[4]) = 2]
+		shoes_favorite = random.choice(shoes)
+
+	if -10 <= float(simple_weather.cur_weather) < 0:
+		shoes = [x for x in shoes if int(x[4]) = 3]
+		shoes_favorite = random.choice(shoes)
+
+	if -25 <= float(simple_weather.cur_weather) < -10:
+		shoes = [x for x in shoes if int(x[4]) = 4]
+		shoes_favorite = random.choice(shoes)
+
+	if float(simple_weather.cur_weather) < -25:
+		shoes = [x for x in shoes if int(x[4]) = 5]
+		shoes_favorite = random.choice(shoes)
+
+	if simple_weather.weather_description == "Дождь🌦":
+		shoes = [x for x in bodys if x[3].startswith("дождь")]
+		shoes_favorite = random.choice(shoes)
+
+	el_shoes = ElClothes(name=shoes_favorite[1], img=shoes_favorite[-1])
+
+	return el_shoes
+
+
+def get_accessories(simple_weather: SimpleWeather):
+	accessories = db_clothes.get_accessories_sql()
+
+	# аксессуары:
+	if float(simple_weather.cur_weather) < -15:
+		accessories = [x for x in bodys if x[2].startswith("ступни_нижнее") and int(x[4]) >= 3]
+		accessories_favorite = random.choice(accessories)
+
+	if float(simple_weather.cur_weather) < 0:
+		accessories = [x for x in bodys if x[2].startswith("руки") and int(x[4]) >= 3]
+		accessories_favorite = random.choice(accessories)
+
+	el_accessories = ElClothes(name=accessories_favorite[1], img=accessories_favorite[-1])
+
+	return el_accessories

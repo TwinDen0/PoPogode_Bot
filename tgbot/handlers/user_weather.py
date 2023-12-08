@@ -1,3 +1,6 @@
+import random
+
+from aiofiles import os
 from aiogram import Dispatcher, executor, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
@@ -10,11 +13,14 @@ from tgbot.keyboards.reply import ReplyMarkupName, get_reply_user
 from tgbot.misc.states import UserStates
 from tgbot.keyboards.inline import get_inline_user, InlineMarkupName
 from tgbot.models.SetClothes import SetClothes
+from tgbot.services import layering
 from tgbot.services.get_city import get_city
 from tgbot.services.get_clothes import get_clothes
 from tgbot.services.get_ip import get_coordinates, get_city_from_coord
 from tgbot.services.get_weather import get_weather
 
+
+from PIL import Image, ImageDraw, ImageFont
 
 async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext):
 	coord = get_coord_db(call.message.chat.id)
@@ -49,7 +55,21 @@ async def weather(message: types.Message, state: FSMContext, coord=[0, 0]):
 	# get_weather(coord)
 	await message.answer(text)
 
+async def test(message: types.Message, state: FSMContext):
+
+	img_path = layering.clothes_layering('./tgbot/img/fon2.png', ['./tgbot/img/insulated_trousers_2.png', './tgbot/img/sweater_yellow_2.png'], ['./tgbot/img/insulated_trousers_1.png', './tgbot/img/sweater_yellow_1.png'])
+
+	photo = open(img_path, 'rb')
+	await message.answer_photo(photo,
+	                                caption=f'✨ <i>Готово!</i> ✨\n\n',
+	                                parse_mode='html')
+	# try:
+	# 	os.remove(reply_img)
+	# except Exception as e:
+	# 	print(e)
+
 
 def register_user_weather(dp: Dispatcher):
 	dp.register_callback_query_handler(get_clothes_mess, Text(startswith="get_clothes"), state=UserStates.weather)
+	dp.register_message_handler(test, commands="test", state='*')
 

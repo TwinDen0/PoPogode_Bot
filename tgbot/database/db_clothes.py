@@ -73,8 +73,7 @@ def get_accessories_sql():
 	cur = base.cursor()
 
 	sql = """ SELECT * FROM clothes WHERE type IN (?, ?, ?)"""
-	clothes = cur.execute(sql, ('горло','руки','ступни_нижнее')).fetchall()
-	print(clothes)
+	clothes = cur.execute(sql, ('горло', 'руки', 'ступни_нижнее')).fetchall()
 
 	base.commit()
 	base.close()

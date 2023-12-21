@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List
 
 
 @dataclass
@@ -18,4 +19,4 @@ class SetClothes:
 	body: ElBody
 	legs: ElClothes
 	shoes: ElClothes
-	accessories: ElClothes
+	accessories: List[ElClothes]

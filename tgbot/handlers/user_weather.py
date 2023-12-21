@@ -22,9 +22,12 @@ from tgbot.services.get_weather import get_weather
 from PIL import Image, ImageDraw, ImageFont
 
 
-async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext):
-	coord = get_coord_db(call.message.chat.id)
-	simple_weather = get_weather(coord)
+async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext, test_data = None):
+	if not test_data:
+		coord = get_coord_db(call.message.chat.id)
+		simple_weather = get_weather(coord)
+	else:
+		simple_weather = test_data
 
 	# написать взятие погоды и её анализ
 	print(simple_weather)
@@ -33,6 +36,7 @@ async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext):
 	clothes = SetClothes(head=clothes.head, body=clothes.body, legs=clothes.legs, shoes=clothes.shoes,
 	                     accessories=clothes.accessories)
 	print(clothes)
+	# count_clothes =
 
 	if clothes.body.outerwear.name != '':
 		bady_text = f'{clothes.body.outerwear.name} + {clothes.body.underwear.name}'
@@ -46,19 +50,19 @@ async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext):
 		if i < len(clothes.accessories) - 1:
 			res_accessorie += " + "
 
-	img_path = layering.clothes_layering('./tgbot/img/fon2.png',
-	                                     [f'./tgbot/img/{clothes.legs.img}_2.png', f'./tgbot/img/{clothes.body.outerwear.img}_2.png'],
-	                                     [f'./tgbot/img/{clothes.legs.img}_1.png', f'./tgbot/img/{clothes.body.outerwear.img}_1.png'])
+	img_path = layering.clothes_layering('./tgbot/img/fon_4+ac.png',
+	                                     [f'./tgbot/img/{clothes.legs.img}_2.png', f'./tgbot/img/{clothes.body.underwear.img}_2.png'],
+	                                     [f'./tgbot/img/{clothes.legs.img}_1.png', f'./tgbot/img/{clothes.body.underwear.img}_1.png'])
 
 	photo = open(img_path, 'rb')
 
 	await call.message.answer_photo(photo, caption=f'Сегодня на улице: {simple_weather.weather_description}\n'
 	                                         f'Температура: {"{:.0f}".format(float(simple_weather.cur_weather))}С°\n\n'
 	                                         f'Рекомендации по одежде\n\n'
-	                                         f'🧢Головной убор: {clothes.head.name}\n'
-	                                         f'👔Тело: {bady_text}\n'
-	                                         f'👖Ноги: {clothes.legs.name}\n'
-	                                         f'👟Обувь: {clothes.shoes.name}\n\n'
+	                                         f'🧢 Головной убор: {clothes.head.name}\n'
+	                                         f'👔 Тело: {bady_text}\n'
+	                                         f'👖 Ноги: {clothes.legs.name}\n'
+	                                         f'👟 Обувь: {clothes.shoes.name}\n\n'
 	                                         f'🕶Рекомендую взять с собой следующие аксессуары: {res_accessorie}\n\n',
 	                          parse_mode="html")
 
@@ -90,4 +94,4 @@ async def test(message: types.Message, state: FSMContext):
 
 def register_user_weather(dp: Dispatcher):
 	dp.register_callback_query_handler(get_clothes_mess, Text(startswith="get_clothes"), state=UserStates.weather)
-	dp.register_message_handler(test, commands="test", state='*')
+	dp.register_message_handler(test, commands="test_img", state='*')

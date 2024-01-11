@@ -9,16 +9,53 @@ def img_layering(image, watermark, position):
 	layer.paste(watermark, (int(position[0]), int(position[1])))
 	return Image.composite(layer, image, layer)
 
-def clothes_layering(base:str, clotses: List[str], images: List[str]):
+def clothes_layering(outerwear = None, underwear = None, undies = None, legs = None, shoes = None, accessories = None):
 	imgs = []
 	clts = []
+
 	coord_imgs = [[520, 65], [260, 65]]
 	coord_clts = [[55, 228], [55, 118]]
+
+	if accessories:
+		dop = "+ac"
+	else:
+		dop = ""
+
+	if outerwear and underwear and undies:
+		base = f"./tgbot/img/fon_4{dop}.png"
+		#             тело_нижняя   тело_вверхняя                штаны
+		coord_imgs = [[281, 91],    [531, 91],       [781, 91], [994, 91], [1000, 1000]]
+		#             штаны      ботинки     тело_нижняя   тело_вверхняя    голова
+		coord_clts = [[34, 255], [55, 326],  [34, 138],   [34, 138],       [1000, 1000]]
+	if (outerwear and underwear and not undies) or (underwear and undies and not outerwear):
+		base = f"./tgbot/img/fon_3{dop}.png"
+		#             тело_нижняя   тело_вверхняя                штаны
+		coord_imgs = [[281, 91],    [531, 91],       [781, 91], [994, 91], [1000, 1000]]
+		#             штаны      ботинки     тело_нижняя   тело_вверхняя    голова
+		coord_clts = [[34, 255], [55, 326],  [34, 138],   [34, 138],       [1000, 1000]]
+	if underwear and not outerwear and not undies:
+		base = f"./tgbot/img/fon_2{dop}.png"
+		#             тело_нижняя   тело_вверхняя                штаны
+		coord_imgs = [[281, 91],    [531, 91],       [781, 91], [994, 91], [1000, 1000]]
+		#             штаны      ботинки     тело_нижняя   тело_вверхняя    голова
+		coord_clts = [[34, 255], [55, 326],  [34, 138],   [34, 138],       [1000, 1000]]
+
+
 	base = Image.open(base).convert("RGBA")
-	for img in clotses:
-		clts.append(Image.open(img).convert("RGBA"))
-	for img in images:
-		imgs.append(Image.open(img).convert("RGBA"))
+
+	clts.append(Image.open(f'./tgbot/img/{legs}_2.png').convert("RGBA"))
+	clts.append(Image.open(f'./tgbot/img/{shoes}.png').convert("RGBA"))
+	clts.append(Image.open(f'./tgbot/img/{underwear}_2.png').convert("RGBA"))
+	if outerwear:
+		clts.append(Image.open(f'./tgbot/img/{outerwear}_2.png').convert("RGBA"))
+
+	if outerwear:
+		imgs.append(Image.open(f'./tgbot/img/{outerwear}_1.png').convert("RGBA"))
+	imgs.append(Image.open(f'./tgbot/img/{underwear}_1.png').convert("RGBA"))
+	if undies:
+		imgs.append(Image.open(f'./tgbot/img/{undies}_1.png').convert("RGBA"))
+	imgs.append(Image.open(f'./tgbot/img/{legs}_1.png').convert("RGBA"))
+
 
 	for i in range(0, len(imgs)):
 		x = coord_imgs[i][0]

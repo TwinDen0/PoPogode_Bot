@@ -115,18 +115,6 @@ async def get_descript(call: types.CallbackQuery, state: FSMContext):
 
 	await call.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
-	if int(temp) < 0 and (descript != "Снег❄️" or descript != "Ясно☀️" or descript != "Облачно⛅️"):
-		await call.message.answer('<b>Ошибка</b> в выборе описания погоды в минусовую температуру!\n\n'
-		                     '<b>Описание погоды изменено на "Снег❄️"</b>',
-		                     parse_mode="html")
-		descript = "Снег❄️"
-
-	if int(temp) > 0 and descript == "Снег❄️":
-		await call.message.answer('<b>Ошибка</b> в выборе описания погоды в плюсовую температуру!\n\n'
-		                     '<b>Описание погоды изменено на "Дождь🌦"</b>',
-		                     parse_mode="html")
-		descript = "Дождь🌦"
-
 	await call.message.answer('Получены следующие данные:\n'
 		                      f'• Температура = {temp}\n'
 		                      f'• Описание погоды = {descript}\n\n'

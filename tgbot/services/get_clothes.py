@@ -26,7 +26,7 @@ def get_head(simple_weather: SimpleWeather):
 	heads = db_clothes.get_head_sql()
 	head = ['', '']
 	# голова:
-	if float(simple_weather.cur_weather) < 0:
+	if float(simple_weather.cur_weather) <= 0:
 		heads = [x for x in heads if int(x[4]) >= 2]
 		head = random.choice(heads)
 
@@ -53,7 +53,7 @@ def get_body(simple_weather: SimpleWeather):
 	if  0 < float(simple_weather.cur_weather) < 10:
 		outer_bodys = [x for x in bodys if x[3].startswith("верхнее_осень")]
 		_outer_body = random.choice(outer_bodys)
-	if  float(simple_weather.cur_weather) < 0:
+	if  float(simple_weather.cur_weather) <= 0:
 		outer_bodys = [x for x in bodys if x[3].startswith("верхнее_зима")]
 		_outer_body = random.choice(outer_bodys)
 		print('outer_bodys', outer_bodys)
@@ -88,8 +88,8 @@ def get_body(simple_weather: SimpleWeather):
 		_under_body = random.choice(under_bodys)
 
 	if float(simple_weather.cur_weather) < -15:
-		pass
-		# надо подштаники
+		under_bodys = [x for x in under_bodys if int(x[4]) >= 3]
+		_under_body = random.choice(under_bodys)
 
 	if _outer_body:
 		outer_body = ElClothes(name=_outer_body[1], img=_outer_body[-1])
@@ -112,7 +112,7 @@ def get_legs(simple_weather: SimpleWeather):
 	if 15 <= float(simple_weather.cur_weather):
 		legs = [x for x in legs if int(x[4]) < 2]
 		legs_favorite = random.choice(legs)
-	if 15 > float(simple_weather.cur_weather) > 0:
+	if 15 > float(simple_weather.cur_weather) >= 0:
 		legs = [x for x in legs if int(x[4]) >= 2]
 		legs_favorite = random.choice(legs)
 	if float(simple_weather.cur_weather) < 0:

@@ -28,7 +28,6 @@ def get_city_from_coord(Coordinates):
     env = Env()
     env.read_env(".env")
     open_weather_token = env.str("OPEN_WEATHER_TOKEN")
-
     r_weather = requests.get(
         f"https://api.openweathermap.org/data/2.5/weather?lat={Coordinates.latitude}&lon={Coordinates.longitude}&appid={open_weather_token}"
         )

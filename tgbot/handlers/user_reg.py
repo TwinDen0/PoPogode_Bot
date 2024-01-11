@@ -4,7 +4,7 @@ from aiogram.types import ReplyKeyboardRemove
 from aiogram.types.input_media import InputMedia
 from aiogram.dispatcher.filters import Text
 
-from tgbot.database.sqlite_db import create_user, get_coord_db, get_city_sql
+from tgbot.database.sqlite_db import create_user, get_coord_db, get_city_sql, check_user_exists
 from tgbot.keyboards.reply import ReplyMarkupName, get_reply_user
 from tgbot.misc.states import UserStates
 from tgbot.keyboards.inline import get_inline_user, InlineMarkupName
@@ -15,28 +15,39 @@ from tgbot.services.get_weather import get_weather
 
 
 async def start(message: types.Message):
-	await message.bot.send_chat_action(message.chat.id, 'typing')
+	user_exists = check_user_exists(message.chat.id)
+	if user_exists:
+		await message.answer('Привет!👋🏻\n\nЯ - твой <b>персональный бот для подбора одежды</b>🌤\n\n'
+		                     'Я помогу узнать текущую погоду в твоем городе и дам '
+							 'рекомендации по выбору одежды/обуви/аксессуаров!\n\n'
+		                     'Если хотите узнать, что вам стоит надеть, введите команду: /clothes',
+		                     parse_mode="html",
+		                     reply_markup=ReplyKeyboardRemove())
+	else:
+		await message.bot.send_chat_action(message.chat.id, 'typing')
+		await UserStates.pref_coord.set()
+		await message.answer('Привет!👋🏻\n\nЯ - твой <b>персональный бот для подбора одежды</b>🌤\n\n'
+		                     'Я помогу узнать текущую погоду в твоем городе и дам '
+							 'рекомендации по выбору одежды/обуви/аксессуаров!\n\n',
+		                     parse_mode="html",
+		                     reply_markup=ReplyKeyboardRemove())
+		await find_city(message)
+
+async def find_city(message: types.Message, change = False):
 	await UserStates.pref_coord.set()
-	await message.answer('👋🏻Привет! Я - твой персональный бот для погоды🌤\n\n'
-	                     '• Я могу помочь узнать текущую погоду;\n'
-	                     '• Дать рекомендации по выбору одежды/обуви/аксессуаров в зависимости от погоды;\n'
-	                     '• Ты можешь посмотреть результаты и поучаствовать в опросе о том, как ощущается погода на улице\n'
-	                     '• Я могу дать рекомендации по защите от солнца, учитывая УФ индекс;\n'
-	                     '• Подскажу, когда начинается рассвет или закат;\n'
-	                     '• Предоставлю рекомендации по занятию спортом на улице в зависимости от погоды;\n'
-	                     '• Поделюсь информацией о текущем качестве воздуха.\n\n'
-	                     '<i>Узнаю ваш город...</i>',
-	                     parse_mode="html",
-	                     reply_markup=ReplyKeyboardRemove())
-	await pref_coord(message)
+	await message.answer('<i>Узнаю ваш город...</i>',
+	                     parse_mode="html")
 
-
-async def pref_coord(message: types.Message):
 	coord = get_coordinates()
 	city = get_city_from_coord(coord)
 	markup = get_inline_user(InlineMarkupName.pref_coord)
 	create_user(message.from_user.id, message.from_user.username, message.from_user.first_name, city,
 	            [coord.latitude, coord.longitude])
+	if change:
+		pref = 1
+	else:
+		pref = 2
+	await message.bot.delete_message(chat_id=message.chat.id, message_id=message.message_id+pref)
 	await message.answer(f"Ваш город: <b>{city}</b>\nВерно?", parse_mode="html", reply_markup=markup)
 
 
@@ -50,8 +61,8 @@ async def pref_coord_no(call: types.CallbackQuery, state: FSMContext):
 	await UserStates.location.set()
 	markup = get_reply_user(ReplyMarkupName.locale)
 	await call.message.answer("Тогда:\n"
-	                          "✍🏻 Напиши название своего населенного пункта или\n"
-	                          "🗺 Отправь свою геолокацию!", parse_mode="html", reply_markup=markup)
+	                          "✍🏻 <b>Напиши название</b> своего населенного пункта или\n"
+	                          "🗺 <b>Отправь свою геолокацию!</b>", parse_mode="html", reply_markup=markup)
 
 
 async def location(message: types.Message, state: FSMContext):

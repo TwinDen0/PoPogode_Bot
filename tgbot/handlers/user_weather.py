@@ -8,10 +8,12 @@ from aiogram.types.input_media import InputMedia
 from aiogram.dispatcher.filters import Text
 
 from tgbot.database.db_clothes import get_clothes_sql
-from tgbot.database.sqlite_db import create_user, get_coord_db
+from tgbot.database.sqlite_db import create_user, get_coord_db, get_city_sql, check_user_exists
+from tgbot.handlers.user_reg import find_city
 from tgbot.keyboards.reply import ReplyMarkupName, get_reply_user
 from tgbot.misc.states import UserStates
 from tgbot.keyboards.inline import get_inline_user, InlineMarkupName
+from tgbot.models.Coordinates import Coordinates
 from tgbot.models.SetClothes import SetClothes
 from tgbot.services import layering
 from tgbot.services.get_city import get_city
@@ -22,9 +24,19 @@ from tgbot.services.get_weather import get_weather
 from PIL import Image, ImageDraw, ImageFont
 
 
-async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext, test_data = None):
+async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext, test_data=None):
+	await call.message.edit_text(f"Отлично! Теперь я могу подсказать, что вам надеть!", reply_markup=None)
+	await mess_clothes(call.message, state, test_data)
+
+async def mess_clothes(message: types.Message, state: FSMContext, test_data=None):
+	user_exists = check_user_exists(message.chat.id)
+	if not user_exists:
+		await message.answer('<b>Для начала работы с ботом используйте команду: /start </b>',
+		                     parse_mode="html")
+		return
+	# await call.bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup = None)
 	if not test_data:
-		coord = get_coord_db(call.message.chat.id)
+		coord = get_coord_db(message.chat.id)
 		simple_weather = get_weather(coord)
 	else:
 		simple_weather = test_data
@@ -40,8 +52,10 @@ async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext, test_da
 
 	if clothes.body.outerwear.name != '':
 		bady_text = f'{clothes.body.outerwear.name} + {clothes.body.underwear.name}'
+		outerwear = clothes.body.outerwear.img
 	else:
 		bady_text = f'{clothes.body.underwear.name}'
+		outerwear = None
 
 	res_accessorie = ''
 	for i in range(0, len(clothes.accessories)):
@@ -50,21 +64,20 @@ async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext, test_da
 		if i < len(clothes.accessories) - 1:
 			res_accessorie += " + "
 
-	img_path = layering.clothes_layering('./tgbot/img/fon_4+ac.png',
-	                                     [f'./tgbot/img/{clothes.legs.img}_2.png', f'./tgbot/img/{clothes.body.underwear.img}_2.png'],
-	                                     [f'./tgbot/img/{clothes.legs.img}_1.png', f'./tgbot/img/{clothes.body.underwear.img}_1.png'])
+	img_path = layering.clothes_layering(outerwear=outerwear, underwear=clothes.body.underwear.img, undies=None,
+	                                     legs=clothes.legs.img, shoes=clothes.shoes.img, accessories=None)
 
 	photo = open(img_path, 'rb')
 
-	await call.message.answer_photo(photo, caption=f'Сегодня на улице: {simple_weather.weather_description}\n'
-	                                         f'Температура: {"{:.0f}".format(float(simple_weather.cur_weather))}С°\n\n'
-	                                         f'Рекомендации по одежде\n\n'
-	                                         f'🧢 Головной убор: {clothes.head.name}\n'
-	                                         f'👔 Тело: {bady_text}\n'
-	                                         f'👖 Ноги: {clothes.legs.name}\n'
-	                                         f'👟 Обувь: {clothes.shoes.name}\n\n'
-	                                         f'🕶Рекомендую взять с собой следующие аксессуары: {res_accessorie}\n\n',
-	                          parse_mode="html")
+	await message.answer_photo(photo, caption=f'Сегодня на улице: {simple_weather.weather_description}\n'
+	                                               f'Температура: {"{:.0f}".format(float(simple_weather.cur_weather))}С°\n\n'
+	                                               f'Рекомендации по одежде\n\n'
+	                                               f'🧢 Головной убор: {clothes.head.name}\n'
+	                                               f'👔 Тело: {bady_text}\n'
+	                                               f'👖 Ноги: {clothes.legs.name}\n'
+	                                               f'👟 Обувь: {clothes.shoes.name}\n\n'
+	                                               f'🕶Рекомендую взять с собой следующие аксессуары: {res_accessorie}\n\n',
+	                                parse_mode="html")
 
 
 async def weather(message: types.Message, state: FSMContext, coord=[0, 0]):
@@ -91,7 +104,36 @@ async def test(message: types.Message, state: FSMContext):
 # except Exception as e:
 # 	print(e)
 
+async def mess_weather(message: types.Message, state: FSMContext):
+	user_exists = check_user_exists(message.chat.id)
+	if not user_exists:
+		await message.answer('<b>Для начала работы с ботом используйте команду: /start </b>',
+		                     parse_mode="html")
+		return
+	coord = get_coord_db(message.chat.id)
+	simple_weather = get_weather(coord)
+	city = get_city_sql(message.chat.id)
+	temp = round(int(simple_weather.cur_weather))
+	if temp - int(simple_weather.cur_weather) >= 0.5:
+		temp += 1
+	await message.answer(f"<i>Погода в <b>{city}</b>:</i>\n"
+	                     f"{simple_weather.weather_description}\n"
+	                     f"Температура: <b>{temp}°С</b> 🌡\n"
+	                     f"Ветер: <b>{simple_weather.wind} м/с</b> 🪁\n"
+	                     f"Влажность: <b>{simple_weather.humidity}%</b> 💧")
+
+async def change_city(message: types.Message, state: FSMContext):
+	user_exists = check_user_exists(message.chat.id)
+	if not user_exists:
+		await message.answer('<b>Для начала работы с ботом используйте команду: /start </b>',
+		                     parse_mode="html")
+		return
+	await UserStates.pref_coord.set()
+	await find_city(message, change=True)
 
 def register_user_weather(dp: Dispatcher):
+	dp.register_message_handler(mess_clothes, commands="clothes", state='*')
 	dp.register_callback_query_handler(get_clothes_mess, Text(startswith="get_clothes"), state=UserStates.weather)
 	dp.register_message_handler(test, commands="test_img", state='*')
+	dp.register_message_handler(mess_weather, commands="weather", state='*')
+	dp.register_message_handler(change_city, commands="change_city", state='*')

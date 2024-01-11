@@ -13,7 +13,8 @@ def sql_start():
                 'name   TEXT,'
                 'city TEXT,'
                 'lat   REAL,'
-                'lon   REAL'
+                'lon   REAL,'
+                'clock   TEXT'
                 ');')
 
     base.commit()
@@ -28,6 +29,30 @@ def create_user(id, login, name, city, coords):
 
     base.commit()
     base.close()
+
+def check_user_exists(user_id):
+    cur.execute("SELECT * FROM users WHERE id=?", (user_id,))
+    if cur.fetchone():
+        return True
+    else:
+        return False
+
+
+def get_all_users():
+    users = []
+    cur.execute("SELECT * FROM users")
+    rows = cur.fetchall()
+    for row in rows:
+        user = {
+            "id": row[0],
+            "login": row[1],
+            "name": row[2],
+            "city": row[3],
+            "lat": row[4],
+            "lon": row[5]
+        }
+        users.append(user)
+    return users
 
 def get_coord_db(id):
     base = sq.connect('local.db')

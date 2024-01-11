@@ -16,6 +16,7 @@ from tgbot.handlers.user_weather import register_user_weather
 from tgbot.middlewares.environment import EnvironmentMiddleware
 
 from tgbot.database import sqlite_db
+from tgbot.services.scheduled import scheduled
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +60,16 @@ async def main():
     register_all_handlers(dp)
 
     loop = asyncio.get_event_loop()
-
     # start
     try:
-        await loop.create_task(dp.start_polling())
+        # Вызываем функцию scheduled каждые 24 часа (86400 секунд)
+        task_scheduled = scheduled(5, bot)
+
+        task_polling = dp.start_polling()
+
+        await asyncio.gather(task_scheduled, task_polling)
+
+        executor.start_polling(dp, skip_updates=True)
     finally:
         await dp.storage.close()
         await dp.storage.wait_closed()

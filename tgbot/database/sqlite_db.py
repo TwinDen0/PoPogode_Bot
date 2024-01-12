@@ -37,6 +37,20 @@ def check_user_exists(user_id):
     else:
         return False
 
+def check_reminder_exists(user_id):
+    cur.execute("SELECT clock FROM users WHERE id=?", (user_id,))
+    if cur.fetchone()[0] != None:
+        return True
+    else:
+        return False
+
+def set_user_clock_reminder(clock, user_id):
+    cur.execute("UPDATE users SET clock=? WHERE id=?", (clock, user_id,))
+    base.commit()
+
+def del_reminder(user_id):
+    cur.execute("UPDATE users SET clock=NULL WHERE id=?", (user_id,))
+    base.commit()
 
 def get_all_users():
     users = []

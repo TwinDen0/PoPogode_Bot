@@ -8,7 +8,8 @@ from aiogram.types.input_media import InputMedia
 from aiogram.dispatcher.filters import Text
 
 from tgbot.database.db_clothes import get_clothes_sql
-from tgbot.database.sqlite_db import create_user, get_coord_db, get_city_sql, check_user_exists
+from tgbot.database.sqlite_db import create_user, get_coord_db, get_city_sql, check_user_exists, check_reminder_exists, \
+	del_reminder, set_user_clock_reminder
 from tgbot.handlers.user_reg import find_city
 from tgbot.keyboards.reply import ReplyMarkupName, get_reply_user
 from tgbot.misc.states import UserStates
@@ -122,7 +123,57 @@ async def mess_weather(message: types.Message, state: FSMContext):
 	                     f"Ветер: <b>{simple_weather.wind} м/с</b> 🪁\n"
 	                     f"Влажность: <b>{simple_weather.humidity}%</b> 💧")
 
-async def change_city(message: types.Message, state: FSMContext):
+async def mess_reminder(message: types.Message, state: FSMContext):
+	flag_reminder = check_reminder_exists(message.from_user.id)
+	if flag_reminder:
+		markup = get_inline_user(InlineMarkupName.change_reminder)
+		await message.answer(f"Хотите <b>изменить</b> или <b>удалить</b> ежедневное <b>напоминание</b>?", reply_markup=markup)
+	else:
+		markup = get_inline_user(InlineMarkupName.set_reminder)
+		await message.answer(f"Хотите установить ежедневное <b>напоминание</b>?", reply_markup=markup)
+
+async def set_reminder(call: types.CallbackQuery, state: FSMContext):
+	markup = get_inline_user(InlineMarkupName.clok_reminder)
+	await call.message.edit_text(f"Выберите время напоминания:", reply_markup=markup)
+
+async def set_clock_reminder(call: types.CallbackQuery, state: FSMContext):
+	hour = call.data.split("_")[1]
+	minute = call.data.split("_")[2]
+	set_user_clock_reminder(f"{hour}:{minute}", call.from_user.id)
+	await call.message.edit_text(f"<b>Напоминание установлено!</b>🎉")
+
+async def no_set_reminder(call: types.CallbackQuery, state: FSMContext):
+	await call.message.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+	await call.message.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id-1)
+
+
+async def another_clock_reminder(call: types.CallbackQuery, state: FSMContext):
+	await UserStates.set_reminder.set()
+	await call.message.edit_text(f'Введите время <b>в формате "9:00"</b> ↓ ')
+
+async def set_another_clock_reminder(message: types.Message, state: FSMContext):
+	try:
+		hour = message.text.split(":")[0]
+		minute = message.text.split(":")[1]
+		if minute[0] == 0 and len(minute) > 1:
+			minute = minute[1:]
+		if not 0 <= int(hour) <= 23:
+			raise Exception()
+		if not 0 <= int(minute) <= 60:
+			raise Exception()
+		set_user_clock_reminder(f"{hour}:{minute}", message.from_user.id)
+		await message.answer(f"<b>Напоминание установлено!</b>🎉")
+		await state.reset_data()
+	except Exception as e:
+		await message.v(f'<b>Ошибка, неверный формат!</b>\nПопробуйте ещё раз:')
+
+
+async def delete_reminder(call: types.CallbackQuery, state: FSMContext):
+	del_reminder(call.message.from_user.id)
+	await call.message.edit_text(f"Напоминание удалено")
+
+
+async def mess_change_city(message: types.Message, state: FSMContext):
 	user_exists = check_user_exists(message.chat.id)
 	if not user_exists:
 		await message.answer('<b>Для начала работы с ботом используйте команду: /start </b>',
@@ -131,9 +182,32 @@ async def change_city(message: types.Message, state: FSMContext):
 	await UserStates.pref_coord.set()
 	await find_city(message, change=True)
 
+async def mess_help(message: types.Message, state: FSMContext):
+	user_exists = check_user_exists(message.chat.id)
+	if not user_exists:
+		await message.answer('<b>Для начала работы с ботом используйте команду: /start </b>',
+		                     parse_mode="html")
+		return
+	await message.answer(f"<b>Команды бота: </b>\n\n"
+							"/weather - Пришлю информацию о погоде на сегодня.\n\n"
+							"/clothes - Подскажу, что лучше надеть сегодня, исходя из погоды и времени года.\n\n"
+							"/sport - Подскажу, какие одежду лучше выбрать для занятий спортом.\n\n"
+							"/reminder - Укажи время, в которое хочешь получать ежедневные советы о том, что надеть.\n\n"
+							"/change_city - позволит тебе поменять город для получения информации о погоде и подсказок о том, что надеть.")
+
+
 def register_user_weather(dp: Dispatcher):
 	dp.register_message_handler(mess_clothes, commands="clothes", state='*')
 	dp.register_callback_query_handler(get_clothes_mess, Text(startswith="get_clothes"), state=UserStates.weather)
 	dp.register_message_handler(test, commands="test_img", state='*')
 	dp.register_message_handler(mess_weather, commands="weather", state='*')
-	dp.register_message_handler(change_city, commands="change_city", state='*')
+	dp.register_message_handler(mess_reminder, commands="reminder", state='*')
+	dp.register_message_handler(mess_change_city, commands="change_city", state='*')
+	dp.register_message_handler(mess_help, commands="help", state='*')
+	dp.register_callback_query_handler(set_reminder, Text(startswith="set_reminder"), state='*')
+	dp.register_callback_query_handler(no_set_reminder, Text(startswith="no_set_reminder"), state='*')
+	dp.register_callback_query_handler(set_clock_reminder, Text(startswith="reminder_"), state='*')
+	dp.register_callback_query_handler(another_clock_reminder, Text(startswith="another_clock_reminder"), state='*')
+	dp.register_message_handler(set_another_clock_reminder, state=UserStates.set_reminder)
+	dp.register_callback_query_handler(delete_reminder, Text(startswith="delete_reminder"), state='*')
+

@@ -5,6 +5,7 @@ class UserStates(StatesGroup):
 	pref_coord = State()
 	location = State()
 	weather = State()
+	set_reminder = State()
 
 
 

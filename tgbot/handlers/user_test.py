@@ -5,7 +5,7 @@ from aiogram.types.input_media import InputMedia
 from aiogram.dispatcher.filters import Text
 
 from tgbot.database.sqlite_db import create_user, get_coord_db, get_city_sql
-from tgbot.handlers.user_weather import get_clothes_mess
+from tgbot.handlers.user_weather import get_clothes_mess, mess_clothes
 from tgbot.keyboards.reply import ReplyMarkupName, get_reply_user
 from tgbot.misc.states import UserStates
 from tgbot.keyboards.inline import get_inline_user, InlineMarkupName
@@ -126,7 +126,7 @@ async def get_descript(call: types.CallbackQuery, state: FSMContext):
                      uvi='')
 
 	await state.reset_state()
-	await get_clothes_mess(call, state, test_data)
+	await mess_clothes(call.message, state, test_data)
 
 
 def register_user_test(dp: Dispatcher):

@@ -28,7 +28,6 @@ async def scheduled(wait_for, bot):
             if user_now.hour == 12 and user_now.minute == 51:  # Проверяем, что местное время пользователя 9:00 утра
 
                 simple_weather = get_weather((user['lat'], user['lon']))
-                print(simple_weather)
 
                 temp = round(int(simple_weather.cur_weather))
                 if temp - int(simple_weather.cur_weather) >= 0.5:

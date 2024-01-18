@@ -25,9 +25,9 @@ from tgbot.services.get_weather import get_weather
 from PIL import Image, ImageDraw, ImageFont
 
 
-async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext, test_data=None):
+async def get_clothes_mess(call: types.CallbackQuery, state: FSMContext):
 	await call.message.edit_text(f"Отлично! Теперь я могу подсказать, что вам надеть!", reply_markup=None)
-	await mess_clothes(call.message, state, test_data)
+	await mess_clothes(call.message, state)
 
 async def mess_clothes(message: types.Message, state: FSMContext, test_data=None):
 	user_exists = check_user_exists(message.chat.id)
@@ -42,14 +42,9 @@ async def mess_clothes(message: types.Message, state: FSMContext, test_data=None
 	else:
 		simple_weather = test_data
 
-	# написать взятие погоды и её анализ
-	print(simple_weather)
-
 	clothes = get_clothes(simple_weather)
 	clothes = SetClothes(head=clothes.head, body=clothes.body, legs=clothes.legs, shoes=clothes.shoes,
 	                     accessories=clothes.accessories)
-	print(clothes)
-	# count_clothes =
 
 	if clothes.body.outerwear.name != '':
 		bady_text = f'{clothes.body.outerwear.name} + {clothes.body.underwear.name}'
@@ -61,28 +56,28 @@ async def mess_clothes(message: types.Message, state: FSMContext, test_data=None
 	res_accessorie = ''
 	for i in range(0, len(clothes.accessories)):
 		res_accessorie += clothes.accessories[i].name
-		print(i, res_accessorie)
 		if i < len(clothes.accessories) - 1:
 			res_accessorie += " + "
 
-	img_path = layering.clothes_layering(outerwear=outerwear, underwear=clothes.body.underwear.img, undies=None,
-	                                     legs=clothes.legs.img, shoes=clothes.shoes.img, accessories=None)
+	img_path = layering.clothes_layering(head=clothes.head.img, outerwear=outerwear, underwear=clothes.body.underwear.img, undies=None,
+	                                     legs=clothes.legs.img, shoes=clothes.shoes.img, accessories=clothes.accessories)
 
 	photo = open(img_path, 'rb')
 
-	await message.answer_photo(photo, caption=f'Сегодня на улице: {simple_weather.weather_description}\n'
-	                                               f'Температура: {"{:.0f}".format(float(simple_weather.cur_weather))}С°\n\n'
-	                                               f'Рекомендации по одежде\n\n'
-	                                               f'🧢 Головной убор: {clothes.head.name}\n'
-	                                               f'👔 Тело: {bady_text}\n'
-	                                               f'👖 Ноги: {clothes.legs.name}\n'
-	                                               f'👟 Обувь: {clothes.shoes.name}\n\n'
-	                                               f'🕶Рекомендую взять с собой следующие аксессуары: {res_accessorie}\n\n',
-	                                parse_mode="html")
+	text = f'Сегодня на улице: {simple_weather.weather_description}\n'\
+	                                               f'Температура: {"{:.0f}".format(float(simple_weather.cur_weather))}С°\n\n'\
+	                                               f'<i>Рекомендации по одежде:</i>\n'\
+	                                               f'🧢 Головной убор: <b>{clothes.head.name}</b>\n'\
+	                                               f'👔 Тело: <b>{bady_text}</b>\n'\
+	                                               f'👖 Ноги: <b>{clothes.legs.name}</b>\n'\
+	                                               f'👟 Обувь: <b>{clothes.shoes.name}</b>\n\n'
+	if len(clothes.accessories) > 0:
+		text += f'🕶Рекомендую взять с собой следующие аксессуары: <b>{res_accessorie}</b>\n\n'
+
+	await message.answer_photo(photo, caption= text, parse_mode="html")
 
 
 async def weather(message: types.Message, state: FSMContext, coord=[0, 0]):
-	print(coord)
 	text = get_weather(coord)
 
 	# get_weather(coord)
@@ -98,12 +93,6 @@ async def test(message: types.Message, state: FSMContext):
 	await message.answer_photo(photo,
 	                           caption=f'✨ <i>Готово!</i> ✨\n\n',
 	                           parse_mode='html')
-
-
-# try:
-# 	os.remove(reply_img)
-# except Exception as e:
-# 	print(e)
 
 async def mess_weather(message: types.Message, state: FSMContext):
 	user_exists = check_user_exists(message.chat.id)

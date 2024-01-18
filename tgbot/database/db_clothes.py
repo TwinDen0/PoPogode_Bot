@@ -7,7 +7,6 @@ def get_clothes_sql():
 
 	sql = """ SELECT * FROM clothes """
 	clothes = cur.execute(sql).fetchone()
-	print(clothes)
 
 	base.commit()
 	base.close()
@@ -21,7 +20,6 @@ def get_head_sql():
 
 	sql = """ SELECT * FROM clothes WHERE type = ?"""
 	clothes = cur.execute(sql, ('голова',)).fetchall()
-	print(clothes)
 
 	base.commit()
 	base.close()
@@ -35,7 +33,6 @@ def get_body_sql():
 
 	sql = """ SELECT * FROM clothes WHERE type = ?"""
 	clothes = cur.execute(sql, ('тело',)).fetchall()
-	print(clothes)
 
 	base.commit()
 	base.close()
@@ -48,7 +45,6 @@ def get_legs_sql():
 
 	sql = """ SELECT * FROM clothes WHERE type = ?"""
 	clothes = cur.execute(sql, ('ноги',)).fetchall()
-	print(clothes)
 
 	base.commit()
 	base.close()
@@ -61,7 +57,6 @@ def get_shoes_sql():
 
 	sql = """ SELECT * FROM clothes WHERE type = ?"""
 	clothes = cur.execute(sql, ('ступни',)).fetchall()
-	print(clothes)
 
 	base.commit()
 	base.close()

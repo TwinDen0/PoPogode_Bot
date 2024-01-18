@@ -48,7 +48,6 @@ def get_body(simple_weather: SimpleWeather):
 	outer_body = ElClothes(name="", img="")
 
 	under_bodys = [x for x in bodys if not (x[3].startswith("верхнее") or x[3].startswith("нижнее"))]
-	print("under_bodys ", under_bodys)
 
 	if  0 < float(simple_weather.cur_weather) < 10:
 		outer_bodys = [x for x in bodys if x[3].startswith("верхнее_осень")]
@@ -56,7 +55,6 @@ def get_body(simple_weather: SimpleWeather):
 	if  float(simple_weather.cur_weather) <= 0:
 		outer_bodys = [x for x in bodys if x[3].startswith("верхнее_зима")]
 		_outer_body = random.choice(outer_bodys)
-		print('outer_bodys', outer_bodys)
 	if  float(simple_weather.cur_weather) > 0 and (simple_weather.weather_description == "Дождь🌦" or simple_weather.weather_description == "Гроза🌩" or simple_weather.weather_description == "Ливень🌧"):
 		outer_bodys = [x for x in bodys if x[3].startswith("верхнее_дождь")]
 		_outer_body = random.choice(outer_bodys)
@@ -97,7 +95,6 @@ def get_body(simple_weather: SimpleWeather):
 	if not _under_body:
 		_under_body = random.choice(under_bodys)
 
-	print("_under_body ", _under_body)
 	under_body = ElClothes(name=_under_body[1], img=_under_body[-1])
 
 	el_body = ElBody(outerwear=outer_body, underwear=under_body)
@@ -167,8 +164,11 @@ def get_accessories(simple_weather: SimpleWeather):
 		_accessories = [x for x in accessories if x[2].startswith("ступни_нижнее") and int(x[4]) >= 3]
 		accessories_favorite.append(random.choice(_accessories))
 
-	if float(simple_weather.cur_weather) <= 0:
-		_accessories = [x for x in accessories if x[2].startswith("руки") and int(x[4]) >= 2]
+	if float(simple_weather.cur_weather) <= -5:
+		_accessories = [x for x in accessories if x[2].startswith("руки") and int(x[4]) >= 4]
+		accessories_favorite.append(random.choice(_accessories))
+	elif float(simple_weather.cur_weather) <= 0:
+		_accessories = [x for x in accessories if x[2].startswith("руки")]
 		accessories_favorite.append(random.choice(_accessories))
 
 	for accessorie in accessories_favorite:

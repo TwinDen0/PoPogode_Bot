@@ -48,6 +48,13 @@ def set_user_clock_reminder(clock, user_id):
     cur.execute("UPDATE users SET clock=? WHERE id=?", (clock, user_id,))
     base.commit()
 
+def get_user_clock_reminder(user_id):
+    sql = "SELECT clock FROM users WHERE id=?"
+    cur.execute(sql, (user_id,))
+    text = cur.fetchone()[0]
+
+    return text
+
 def del_reminder(user_id):
     cur.execute("UPDATE users SET clock=NULL WHERE id=?", (user_id,))
     base.commit()

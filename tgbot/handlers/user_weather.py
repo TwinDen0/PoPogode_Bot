@@ -154,7 +154,7 @@ async def set_another_clock_reminder(message: types.Message, state: FSMContext):
 		await message.answer(f"<b>Напоминание установлено!</b>🎉")
 		await state.reset_data()
 	except Exception as e:
-		await message.v(f'<b>Ошибка, неверный формат!</b>\nПопробуйте ещё раз:')
+		await message.answer(f'<b>Ошибка, неверный формат!</b>\nПопробуйте ещё раз:')
 
 
 async def delete_reminder(call: types.CallbackQuery, state: FSMContext):

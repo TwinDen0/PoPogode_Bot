@@ -38,5 +38,5 @@ async def scheduled(wait_for, bot):
                 if temp > 0:
                     temp = "+" + str(temp)
                 emoji = code_to_smile[simple_weather.weather_description]
-                await bot.send_message(user["id"], f"Сегодня на улице <b>{temp}°C</b> {emoji}\n<b>Хотите узнать, что лучше сегодня надеть?</b>")
+                await bot.send_message(user["id"], f"Сегодня на улице <b>{temp}°C</b> {emoji}\n<b>Хотите узнать, что лучше сегодня надеть?</b> /clothes")
         await asyncio.sleep(60)  # Проверяем время каждую минуту

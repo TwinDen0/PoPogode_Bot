@@ -29,7 +29,6 @@ async def scheduled(wait_for, bot):
             if not clock:
                 pass
             elif int(user_now.hour) == int(clock.split(":")[0]) and int(user_now.minute) == int(clock.split(":")[1]):  # Проверяем, что местное время пользователя 9:00 утра
-                print("NEN")
                 simple_weather = get_weather((user['lat'], user['lon']))
 
                 temp = round(int(simple_weather.cur_weather))
